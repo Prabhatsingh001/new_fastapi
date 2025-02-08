@@ -21,8 +21,8 @@ class Books(SQLModel, table=True):
     published_year: int
     ISBN: str
     no_of_copies: int
-    created_at: datetime = Field(Column(pq.TIMESTAMP, default=datetime.now))
-    updated_at: datetime = Field(Column(pq.TIMESTAMP, default=datetime.now))
+    created_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
+    updated_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
 
 
     def __repr__(self):
