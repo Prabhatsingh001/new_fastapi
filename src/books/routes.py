@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from typing import Optional, List
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.books.service import BookService
