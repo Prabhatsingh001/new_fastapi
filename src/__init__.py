@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.books.routes import router as books_router
+from src.auth.routers import auth_router
 from contextlib import asynccontextmanager
 from src.db.main import init_db
 
@@ -22,3 +23,4 @@ app = FastAPI(
 )
 
 app.include_router(books_router, prefix=f"/api/{version}/books", tags=["Books"])
+app.include_router(auth_router, prefix=f"/api/{version}/auth", tags=["Auth"])
