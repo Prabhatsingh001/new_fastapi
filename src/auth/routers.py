@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException,status
 from fastapi.responses import JSONResponse
-from .schemas import UserCreateModel, UserModel
+from .schemas import UserCreateModel, UserModel, UserLoginModel
 from .service import UserService
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -36,20 +36,20 @@ async def create_user(
 
 @auth_router.post("/login")
 async def login_user(
-    user_data: UserCreateModel, 
+    user_data: UserLoginModel, 
     session: AsyncSession = Depends(get_session)
 ):
     
-    login_emial = user_data.email
+    login_email = user_data.email
     login_password = user_data.password
 
-    user = await user_service.get_user_by_email(login_emial,session)
+    user = await user_service.get_user_by_email(login_email,session)
 
     if user is not None:
         password_valid = verify_password(login_password, user.password_hash)
 
         if password_valid:
-            acccess_token = create_access_token(
+            access_token = create_access_token(
                 data = {
                     'email': user.email,
                     'user_uid': str(user.uid)
@@ -61,20 +61,21 @@ async def login_user(
                     'email': user.email,
                     'user_uid': str(user.uid)
                 },
-                refresh = True,
-                expiry=timedelta(days=REFRESH_TOKEN_EXPIRY)
+                expiry=timedelta(days=REFRESH_TOKEN_EXPIRY),
+                refresh=True
             )
 
             return JSONResponse(
                 content={
                     "message": "login successful",
-                    "access token": acccess_token,
+                    "access token": access_token,
                     "refresh token": refresh_token,
                     "user":{
                         "email": user.email,
                         "uid": str(user.uid)
                     }
-                }
+                },
+                status_code=status.HTTP_200_OK
             )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

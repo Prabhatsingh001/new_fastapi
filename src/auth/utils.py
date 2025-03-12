@@ -21,10 +21,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict, expiry: timedelta = None, refresh:bool = False) -> str:
     payload = {}
     payload['user'] = data
-    payload['exp'] = datetime.now() + expiry if expiry else timedelta(seconds=ACCESS_TOKEN_EXPIRY)
+    expiry_time = datetime.now() + (expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRY))
+    payload['exp'] = expiry_time
     payload['jti'] = str(uuid.uuid4())
-
     payload['refresh'] = refresh
+
     token = jwt.encode(
         payload= payload,
         key=settings.JWT_SECRET_KEY,
@@ -37,7 +38,8 @@ def create_access_token(data: dict, expiry: timedelta = None, refresh:bool = Fal
 def decode_access_token(token: str) -> dict:
     try:
         token_data = jwt.decode(
-            token, settings.JWT_SECRET_KEY, 
+            token, 
+            settings.JWT_SECRET_KEY, 
             algorithms=[settings.JWT_ALGORITHM]
         )
         return token_data

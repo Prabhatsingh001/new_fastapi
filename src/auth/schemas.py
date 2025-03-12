@@ -19,4 +19,8 @@ class UserModel(BaseModel):
     is_verified: bool
     created_at: datetime
     updated_at: datetime
-    is_active: bool 
+    is_active: bool
+
+class UserLoginModel(BaseModel):
+    email: str
+    password: str
