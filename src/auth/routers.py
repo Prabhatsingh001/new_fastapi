@@ -5,7 +5,9 @@ from .service import UserService
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .utils import create_access_token, decode_access_token, verify_password
-from datetime import timedelta
+from datetime import timedelta, datetime
+from .dependencies import RefreshTokenBearer, AccessTokenBearer
+from src.db.redis import add_jti_blocklist
 
 
 REFRESH_TOKEN_EXPIRY = 2
@@ -85,4 +87,35 @@ async def login_user(
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail="user does not exist!!"
+    )
+
+
+@auth_router.get('/refresh_token')
+async def get_new_acess_token(token_details: dict = Depends(RefreshTokenBearer())):
+    
+    expiry_timestamp = token_details['exp']
+    if datetime.fromtimestamp(expiry_timestamp) > datetime.now():
+        new_access_token = create_access_token(
+            user_data = token_details['user']
+        )
+
+        return JSONResponse(
+            content={
+                "access_token": new_access_token
+            }
+        )
+    
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="invalid or expired token")
+
+
+@auth_router.get('/logout')
+async def revoke_token(token_details:dict = Depends(AccessTokenBearer())):
+    jti = token_details['jti']
+    await add_jti_blocklist(jti)
+
+    return JSONResponse(
+        content={
+            "message": "logged out successfully"
+        },
+        status_code=status.HTTP_200_OK
     )
