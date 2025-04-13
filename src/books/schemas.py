@@ -1,6 +1,9 @@
 from pydantic import BaseModel, Field
 import uuid
-from datetime import datetime
+from datetime import datetime,date
+from typing import List
+from src.reviews.schemas import ReviewModel
+
 
 class Book(BaseModel):
     uid: uuid.UUID
@@ -27,3 +30,6 @@ class BookUpdateModel(BaseModel):
     genre: str
     published_year: int
     no_of_copies: int
+
+class BookDetail(Book):
+    reviews: List[ReviewModel]

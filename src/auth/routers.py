@@ -1,19 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException,status
+from fastapi import APIRouter, Depends, HTTPException,status, dependencies
 from fastapi.responses import JSONResponse
-from .schemas import UserCreateModel, UserModel, UserLoginModel
+from .schemas import UserCreateModel, UserModel, UserLoginModel, UserBookModel
 from .service import UserService
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .utils import create_access_token, decode_access_token, verify_password
 from datetime import timedelta, datetime
-from .dependencies import RefreshTokenBearer, AccessTokenBearer
+from .dependencies import RefreshTokenBearer, AccessTokenBearer, get_current_user, RoleChecker
 from src.db.redis import add_jti_blocklist
+from src.errors import (
+    UserAlreadyExists,
+    UserNotFound,
+    InsufficientPermission,
+    InvalidCredentials,
+    InvalidToken
+)
 
 
 REFRESH_TOKEN_EXPIRY = 2
 
 auth_router = APIRouter()
 user_service = UserService()
+role_checker = RoleChecker(['admin', 'user'])
+
 
 @auth_router.post(
         "/signup",
@@ -21,17 +30,13 @@ user_service = UserService()
         response_model=UserModel
 )
 async def create_user(
-    user_data: UserCreateModel,
-    session: AsyncSession = Depends(get_session)):
-    
+        user_data: UserCreateModel,
+        session: AsyncSession = Depends(get_session)):
     
     email = user_data.email
     user_exist = await user_service.user_exists(email, session)
     if user_exist:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="User already exists")
-    
+        raise UserAlreadyExists()
     new_user = await user_service.create_user(user_data, session)
     return new_user
 
@@ -54,7 +59,8 @@ async def login_user(
             access_token = create_access_token(
                 data = {
                     'email': user.email,
-                    'user_uid': str(user.uid)
+                    'user_uid': str(user.uid),
+                    'role' : user.role
                 }
             )
 
@@ -79,15 +85,8 @@ async def login_user(
                 },
                 status_code=status.HTTP_200_OK
             )
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="invalid username or password"
-        )
-    
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="user does not exist!!"
-    )
+        raise InvalidCredentials()
+    raise UserNotFound()
 
 
 @auth_router.get('/refresh_token')
@@ -105,7 +104,12 @@ async def get_new_acess_token(token_details: dict = Depends(RefreshTokenBearer()
             }
         )
     
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="invalid or expired token")
+    raise InvalidToken()
+
+
+@auth_router.get('/me', response_model=UserBookModel)
+async def get_curr_user(user = Depends(get_current_user), _:bool = Depends(role_checker)):
+    return user
 
 
 @auth_router.get('/logout')
