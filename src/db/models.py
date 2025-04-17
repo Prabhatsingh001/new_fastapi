@@ -5,6 +5,10 @@ from typing import List,Optional
 import uuid
 
 
+
+class BookTag(SQLModel, table=True):
+    book_id: uuid.UUID = Field(default=None, foreign_key="books.uid", primary_key=True)
+    tag_id: uuid.UUID = Field(default=None, foreign_key="tags.uid", primary_key=True)
 """
 class user:
     uid: uuid.UUID
@@ -77,6 +81,12 @@ class Books(SQLModel, table=True):
     user: Optional[User] = Relationship(back_populates="books")
     reviews: List["Reviews"] = Relationship(back_populates="books", 
                                 sa_relationship_kwargs={'lazy': "selectin"})
+    tags: List["Tag"] = Relationship(
+    back_populates="books",
+    link_model=BookTag,
+    sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
 
 
     def __repr__(self):
@@ -103,16 +113,12 @@ class Reviews(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
     updated_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
     user: Optional[User] = Relationship(back_populates="reviews")
-    book: Optional[Books] = Relationship(back_populates="reviews")
+    books: Optional[Books] = Relationship(back_populates="reviews")
 
 
     def __repr__(self):
         return f"<review for {self.book_uid} by user {self.user_uid}>"
-    
 
-class BookTag(SQLModel, table=True):
-    book_id: uuid.UUID = Field(default=None, foreign_key="books.uid", primary_key=True)
-    tag_id: uuid.UUID = Field(default=None, foreign_key="tags.uid", primary_key=True)
 
 
 class Tag(SQLModel, table=True):
