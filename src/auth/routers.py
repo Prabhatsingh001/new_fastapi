@@ -17,6 +17,7 @@ from src.errors import (
 )
 from src.mail import mail, create_message
 from src.config import settings
+from src.celery_tasks import send_email
 
 
 REFRESH_TOKEN_EXPIRY = 2
@@ -30,16 +31,9 @@ role_checker = RoleChecker(['admin', 'user'])
 @auth_router.post('/send_mail')
 async def send_mail(emails: EmailModel):
     emails = emails.addresses
-
+    subject = "welcome to our app"
     html = "<h1>Welcome to the app</h1>"
-
-    message = create_message(
-        recipients=emails,
-        subject="welcome",
-        body=html
-    )
-
-    await mail.send_message(message=message)
+    send_email.delay(emails, subject, html)
     return {"message":"email sent successfully"}
 
 
@@ -67,13 +61,9 @@ async def create_user(
     <h1>verify your email</h1>
     <p> please click this <a href = "{link}">link</a> to verify your email</p>
     """
-
-    message = create_message(
-        recipients=[email],
-        subject="verify your email",
-        body=html_message
-    )
-    bg_tasks.add_task(mail.send_message,message)
+    emails = [email]
+    subject = "verify your email"
+    send_email.delay(emails, subject, html_message)
 
     return {
         "message": "Account created!! check email to verify your acount",
@@ -208,13 +198,10 @@ async def password_reset_request(email_data: PasswordResetRequestModel):
     <h1>Reset your password</h1>
     <p> please click this <a href = "{link}">link</a> to reset your password</p>
     """
+    recipients=[email]
+    subject="verify your email"
 
-    message = create_message(
-        recipients=[email],
-        subject="verify your email",
-        body=html_message
-    )
-    await mail.send_message(message=message)
+    send_email.delay(recipients, subject, html_message)
 
     return JSONResponse(
         content={
