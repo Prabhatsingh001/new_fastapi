@@ -54,15 +54,15 @@ class AccountNotVerified(Exception):
     """Account not yet verified"""
     pass
 
+
 def create_exception_handler(
     status_code: int, initial_detail: Any
 ) -> Callable[[Request, Exception], JSONResponse]:
 
     async def exception_handler(request: Request, exc: BooklyException):
-
         return JSONResponse(content=initial_detail, status_code=status_code)
 
-    return exception_handler
+    return exception_handler #type: ignore
 
 
 def register_error_handlers(app: FastAPI):

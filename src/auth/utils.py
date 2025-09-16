@@ -11,7 +11,9 @@ pwd_context = CryptContext(schemes=["bcrypt"])
 ACCESS_TOKEN_EXPIRY = 3600
 
 def generate_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    hash =  pwd_context.hash(password)
+    return hash
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     if pwd_context.verify(plain_password, hashed_password):
@@ -19,11 +21,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return False
 
 
-def create_access_token(data: dict, expiry: timedelta = None, refresh:bool = False) -> str:
+def create_access_token(user_data: dict, expiry: timedelta = None, refresh:bool = False) -> str: #type: ignore
     payload = {}
-    payload['user'] = data
-    expiry_time = datetime.now() + (expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRY))
-    payload['exp'] = expiry_time
+    payload['user'] = user_data
+    payload['exp'] = datetime.now() + (expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRY))
     payload['jti'] = str(uuid.uuid4())
     payload['refresh'] = refresh
 
@@ -39,14 +40,14 @@ def create_access_token(data: dict, expiry: timedelta = None, refresh:bool = Fal
 def decode_access_token(token: str) -> dict:
     try:
         token_data = jwt.decode(
-            token, 
-            settings.JWT_SECRET_KEY, 
+            jwt=token, 
+            key=settings.JWT_SECRET_KEY, 
             algorithms=[settings.JWT_ALGORITHM]
         )
         return token_data
     except jwt.PyJWTError as e:
         logging.exception(e)
-        return None
+        return {}
     
 
 serializer = URLSafeTimedSerializer(
@@ -56,7 +57,6 @@ serializer = URLSafeTimedSerializer(
 
 
 def create_url_safe_token(data: dict):
-
     token = serializer.dumps(data)
     return token
 

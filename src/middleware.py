@@ -1,6 +1,5 @@
-from fastapi import FastAPI, status
+from fastapi import FastAPI
 from fastapi.requests import Request
-from fastapi.responses import JSONResponse
 import time
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -18,7 +17,7 @@ def register_middleware(app: FastAPI):
         response = await call_next(request)
         processing_time = time.time() - start_time
 
-        message = f"{request.client.host}:{request.client.port} - {request.method} - {request.url.path} - {response.status_code} completed after {processing_time}s"
+        message = f"{request.client.host}:{request.client.port} - {request.method} - {request.url.path} - {response.status_code} completed after {processing_time}s" #type: ignore
 
         print(message)
         return response

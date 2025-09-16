@@ -11,6 +11,7 @@ class ReviewModel(BaseModel):
     created_at: datetime 
     updated_at: datetime
 
+
 class ReviewCreateModel(BaseModel):
     rating: int = Field(lt=5)
     review_text: str

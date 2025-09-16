@@ -9,20 +9,10 @@ import uuid
 class BookTag(SQLModel, table=True):
     book_id: uuid.UUID = Field(default=None, foreign_key="books.uid", primary_key=True)
     tag_id: uuid.UUID = Field(default=None, foreign_key="tags.uid", primary_key=True)
-"""
-class user:
-    uid: uuid.UUID
-    username: str
-    email: str
-    password: str
-    is_active: bool
-    is_superuser: bool
-    created_at: datetime
-    updated_at: datetime
-    last_login: datetime
-"""
+
+
 class User(SQLModel, table=True):
-    __tablename__ = "users"
+    __tablename__ = "users"  #type: ignore
 
     uid: uuid.UUID = Field(
         sa_column=Column(
@@ -44,13 +34,15 @@ class User(SQLModel, table=True):
     is_verified: bool = Field(default=False)
     created_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
     updated_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
-    # last_login: datetime
     is_active: bool = Field(default=True)
-    # is_superuser: bool
-    books: List["Books"] = Relationship(back_populates="user", 
-                                sa_relationship_kwargs={'lazy': "selectin"})
-    reviews: List["Reviews"] = Relationship(back_populates="user", 
-                                sa_relationship_kwargs={'lazy': "selectin"})
+    books: List["Books"] = Relationship(
+        back_populates="user", 
+        sa_relationship_kwargs={'lazy': "selectin"}
+    )
+    reviews: List["Reviews"] = Relationship(
+        back_populates="user", 
+        sa_relationship_kwargs={'lazy': "selectin"}
+    )
 
 
     def __repr__(self):
@@ -59,7 +51,7 @@ class User(SQLModel, table=True):
 
 
 class Books(SQLModel, table=True):
-    __tablename__ = "books"
+    __tablename__ = "books" #type: ignore
 
     uid: uuid.UUID = Field(
         sa_column=Column(
@@ -72,31 +64,30 @@ class Books(SQLModel, table=True):
     title: str
     author: str
     genre: str
-    published_year: int
+    published_year: int 
     ISBN: str
     no_of_copies: int
     user_uid: Optional[uuid.UUID] = Field(default=None, foreign_key="users.uid")
     created_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
     updated_at: datetime = Field(sa_column=Column(pq.TIMESTAMP, default=datetime.now))
+    
     user: Optional[User] = Relationship(back_populates="books")
-    reviews: List["Reviews"] = Relationship(back_populates="books", 
-                                sa_relationship_kwargs={'lazy': "selectin"})
-    tags: List["Tag"] = Relationship(
-    back_populates="books",
-    link_model=BookTag,
-    sa_relationship_kwargs={"lazy": "selectin"},
+    reviews: List["Reviews"] = Relationship(
+        back_populates="books", 
+        sa_relationship_kwargs={'lazy': "selectin"}
     )
-
-
+    tags: List["Tag"] = Relationship(
+        back_populates="books",
+        link_model=BookTag,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
 
     def __repr__(self):
         return f"<Book {self.title}>"
     
 
-
-
 class Reviews(SQLModel, table=True):
-    __tablename__ = "reviews"
+    __tablename__ = "reviews" #type: ignore
 
     uid: uuid.UUID = Field(
         sa_column=Column(
@@ -120,9 +111,8 @@ class Reviews(SQLModel, table=True):
         return f"<review for {self.book_uid} by user {self.user_uid}>"
 
 
-
 class Tag(SQLModel, table=True):
-    __tablename__ = "tags"
+    __tablename__ = "tags" #type: ignore
     uid: uuid.UUID = Field(
         sa_column=Column(pq.UUID, nullable=False, primary_key=True, default=uuid.uuid4)
     )

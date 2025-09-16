@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings = Settings() #type: ignore
 
 
 broker_url = settings.REDIS_URL

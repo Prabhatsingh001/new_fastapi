@@ -4,8 +4,8 @@ from src.db.models import User
 from src.reviews.schemas import ReviewCreateModel
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .service import ReviewService
 from src.auth.dependencies import RoleChecker, get_current_user
+import uuid
 
 
 review_service = ReviewService()
@@ -33,7 +33,7 @@ async def get_review(review_uid: str, session: AsyncSession = Depends(get_sessio
 
 @review_router.post('/book/{book_uid}')
 async def add_review_to_books(
-    book_uid: str,
+    book_uid: uuid.UUID,
     review_data: ReviewCreateModel,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)

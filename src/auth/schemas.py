@@ -24,9 +24,11 @@ class UserModel(BaseModel):
     updated_at: datetime
     is_active: bool
 
+
 class UserBookModel(UserModel):
     books: List[Book]
     reviews: List[ReviewModel]
+
 
 class UserLoginModel(BaseModel):
     email: str

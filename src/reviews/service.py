@@ -7,19 +7,19 @@ from fastapi.exceptions import HTTPException
 from fastapi import status
 import logging
 from sqlmodel import desc, select
-from src.db.models import Reviews
+import uuid
 
 book_service = BookService()
 user_service = UserService()
 
 class ReviewService:
 
-    
-    async def add_review(self, 
-            user_email: str, 
-            book_uid: str, 
-            review_data:ReviewCreateModel,
-            session:AsyncSession
+    async def add_review(
+        self, 
+        user_email: str, 
+        book_uid: uuid.UUID, 
+        review_data:ReviewCreateModel,
+        session:AsyncSession
     ):
         try:
             book = await book_service.get_book(
@@ -45,6 +45,7 @@ class ReviewService:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="user not found"
                 )
+            
             new_review.user = user
             new_review.book = book
 
@@ -88,6 +89,3 @@ class ReviewService:
         session.add(review)
 
         await session.commit()
-
-
-

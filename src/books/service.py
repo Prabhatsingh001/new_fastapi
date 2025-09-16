@@ -1,7 +1,8 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.books.schemas import BookUpdateModel, Book
+from src.books.schemas import BookUpdateModel,BookCreateModel
 from sqlmodel import select,desc
 from src.db.models import Books
+import uuid
 
 class BookService:
     async def get_all_books(self, session:AsyncSession):
@@ -11,7 +12,7 @@ class BookService:
 
     
     
-    async def get_book(self, book_uuid:str, session:AsyncSession):
+    async def get_book(self, book_uuid:uuid.UUID, session:AsyncSession):
         statement = select(Books).where(Books.uid == book_uuid)
         result = await session.exec(statement)
         book =  result.first()
@@ -19,7 +20,7 @@ class BookService:
 
     
     
-    async def create_book(self, book_data:Book ,user_uid: str, session:AsyncSession):
+    async def create_book(self, book_data:BookCreateModel ,user_uid:uuid.UUID , session:AsyncSession):
         book_data_dict = book_data.model_dump()
         new_book = Books(
             **book_data_dict
@@ -32,7 +33,7 @@ class BookService:
 
     
     
-    async def update_book(self,book_uid: str, update_data:BookUpdateModel, session:AsyncSession):
+    async def update_book(self,book_uid: uuid.UUID, update_data:BookUpdateModel, session:AsyncSession):
         book_to_update = await self.get_book(book_uid, session)
         if book_to_update is not None:
             update_data_dict = update_data.model_dump()
@@ -46,7 +47,7 @@ class BookService:
     
     
     
-    async def delete_book(self, book_uid:str, session:AsyncSession):
+    async def delete_book(self, book_uid:uuid.UUID, session:AsyncSession):
         book_to_delete = await self.get_book(book_uid, session)
         if book_to_delete is not None:
             await session.delete(book_to_delete)
@@ -56,7 +57,7 @@ class BookService:
             return None
         
 
-    async def get_user_books(self, user_id: str, session:AsyncSession):
+    async def get_user_books(self, user_id: uuid.UUID, session:AsyncSession):
         statement = select(Books).where(Books.user_uid == user_id).order_by(desc(Books.created_at))
         result = await session.exec(statement)
         return result.all()
