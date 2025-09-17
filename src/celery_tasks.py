@@ -2,11 +2,11 @@ from celery import Celery
 from src.mail import mail, create_message
 from asgiref.sync import async_to_sync
 
-celery_app = Celery()
+app = Celery()
 
-celery_app.config_from_object('src.config')
+app.config_from_object('src.config')
 
-@celery_app.task()
+@app.task()
 def send_email(recipients: list[str], subject: str, body: str):
     message = create_message(
         recipients=recipients,
